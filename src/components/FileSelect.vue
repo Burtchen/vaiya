@@ -89,12 +89,12 @@ export default {
       return returnObject;
     },
     async getFiles(event) {
-      const files = [];
+      let files = [];
       for (const file of event.target.files) {
         if (file.type === "application/pdf") {
-          files.push(await this.readPdfFile(file));
+          files = [...files, await this.readPdfFile(file)];
         } else if (file.type === "application/zip") {
-          files.push(Object.values(await this.readZipFiles(file)));
+          files = [...files, ...Object.values(await this.readZipFiles(file))];
         } else {
           console.warn("unsupported file type");
         }
