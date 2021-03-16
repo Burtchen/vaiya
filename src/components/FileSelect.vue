@@ -9,7 +9,7 @@
     </ul>
   </div>
   <form v-show="files?.length > 0" @submit.prevent="onSubmit">
-    <button v-show="canvased" @click="generatePdf">Labelchef!</button>
+    <button v-show="canvased" @click="generatePdf">vaiya!</button>
     <input type="radio" id="a5" name="size" value="a5" v-model="size" /><label
       for="a5"
       >A5</label
