@@ -13,7 +13,7 @@
       @uploader="getFiles"
       :auto="true"
       :showCancelButton="false"
-      class="p-my-2"
+      class="p-my-4"
       ><template #empty>
         <p>You can also drag and drop files here.</p>
       </template></FileUpload
@@ -54,6 +54,7 @@
   />
 
   <canvas
+    hidden
     v-for="(file, index) in files"
     :id="['originals-' + index]"
     :key="file.name"
@@ -245,9 +246,6 @@ h3 {
 }
 a {
   color: #42b983;
-}
-canvas {
-  visibility: hidden;
 }
 
 .p-orderlist {
