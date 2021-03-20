@@ -1,24 +1,58 @@
 <template>
   <div class="file-select">
-    <h2>Upload PDF or ZIP files</h2>
-    <input type="file" @change="getFiles" accept=".pdf,.zip" />
-    <ul id="array-rendering">
-      <li v-for="file in files" :key="file.name">
-        {{ file.name }}
-      </li>
-    </ul>
+    <p>Start the label optimization with an upload</p>
+    <FileUpload
+      name="upload[]"
+      mode="basic"
+      url="./upload"
+      accept=".pdf,.zip"
+      :multiple="true"
+      :previewWidth="0"
+      :customUpload="true"
+      chooseLabel="Select Files"
+      @uploader="getFiles"
+      :auto="true"
+      :showCancelButton="false"
+      class="p-my-2"
+      ><template #empty>
+        <p>You can also drag and drop files here.</p>
+      </template></FileUpload
+    >
+    <OrderList
+      v-if="files?.length > 0"
+      v-model="files"
+      listStyle="height:auto"
+      dataKey="name"
+      class="p-my-2"
+    >
+      <template #header>
+        List of Files
+      </template>
+      <template #item="slotprops">
+        <span>{{ slotprops.item.name }}</span>
+      </template>
+    </OrderList>
   </div>
-  <form v-show="files?.length > 0" @submit.prevent="onSubmit">
-    <button v-show="canvased" @click="generatePdf">vaiya!</button>
-    <input type="radio" id="a5" name="size" value="a5" v-model="size" /><label
-      for="a5"
-      >A5</label
-    >
-    <input type="radio" id="a4" name="size" value="a4" v-model="size" /><label
-      for="a4"
-      >A4</label
-    >
+  <form v-if="files?.length > 0" @submit.prevent="onSubmit">
+    <SelectButton
+      v-model="size"
+      :options="sizes"
+      class="p-my-2 size-button-group"
+    />
+    <Button
+      v-show="canvased"
+      label="Vaiya!"
+      class="p-button-lg"
+      @click="generatePdf"
+    />
   </form>
+  <ProgressBar
+    class="p-my-4"
+    :value="progress"
+    v-show="progress !== null"
+    :showValue="false"
+  />
+
   <canvas
     v-for="(file, index) in files"
     :id="['originals-' + index]"
@@ -29,13 +63,23 @@
 <script>
 import jsPDF from "jspdf";
 
+import FileUpload from "primevue/fileupload";
+import Button from "primevue/button";
+import SelectButton from "primevue/selectbutton";
+import OrderList from "primevue/orderlist";
+import ProgressBar from "primevue/progressbar";
+
 export default {
   name: "FileSelect",
   data: function() {
     return {
+      value1: "Off",
+      options: ["Off", "On"],
       files: [],
-      size: null,
-      canvased: false
+      size: "a5",
+      sizes: ["a4", "a5"],
+      canvased: false,
+      progress: null
     };
   },
   methods: {
@@ -90,7 +134,7 @@ export default {
     },
     async getFiles(event) {
       let files = [];
-      for (const file of event.target.files) {
+      for (const file of event.files) {
         if (file.type === "application/pdf") {
           files = [...files, await this.readPdfFile(file)];
         } else if (file.type === "application/zip") {
@@ -124,6 +168,7 @@ export default {
     },
     async generatePdf() {
       let index = 0;
+      this.progress = 0;
       const labelPdf =
         this.size === "a4"
           ? new jsPDF()
@@ -136,6 +181,7 @@ export default {
       let receiptsData = "";
       for (const file of this.files) {
         const page = await file.pdf.getPage(1);
+        this.progress = ((index + 1) / this.files.length) * 100;
         const textContent = await page.getTextContent();
         let receiptsContentForThisPage = "";
         textContent.items.forEach(textContentItem => {
@@ -175,34 +221,45 @@ export default {
       a.href = url;
       a.download = `${today}-receipts.txt`;
       document.body.appendChild(a);
-      a.click();
+      // a.click();
       setTimeout(function() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
       }, 0);
+      this.progress = null;
     }
   },
-  props: {}
+  components: {
+    Button,
+    FileUpload,
+    SelectButton,
+    OrderList,
+    ProgressBar
+  }
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
+<style>
 h3 {
   margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
 }
 a {
   color: #42b983;
 }
 canvas {
   visibility: hidden;
+}
+
+.p-orderlist {
+  text-align: left;
+}
+
+.p-orderlist .p-orderlist-controls {
+  display: none !important;
+}
+
+.size-button-group {
+  transform: scale(0.7);
+  text-transform: uppercase;
 }
 </style>
