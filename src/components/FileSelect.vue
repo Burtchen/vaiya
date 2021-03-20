@@ -1,7 +1,7 @@
 <template>
   <div class="file-select">
     <h2>Upload PDF or ZIP files</h2>
-    <input type="file" @change="getFiles" />
+    <input type="file" @change="getFiles" accept=".pdf,.zip" />
     <ul id="array-rendering">
       <li v-for="file in files" :key="file.name">
         {{ file.name }}
@@ -105,6 +105,7 @@ export default {
     },
     async processFiles() {
       let index = 0;
+
       for (const file of this.files) {
         const page = await file.pdf.getPage(1);
         const viewport = page.getViewport({ scale: 3 });
@@ -130,27 +131,34 @@ export default {
               orientation: "l",
               format: "a5"
             });
-      const receiptsPdf = new jsPDF();
       const today = new Date().toLocaleDateString();
       labelPdf.deletePage(1);
-      receiptsPdf.deletePage(1);
-      // eslint-disable-next-line no-unused-vars
+      let receiptsData = "";
       for (const file of this.files) {
+        const page = await file.pdf.getPage(1);
+        const textContent = await page.getTextContent();
+        let receiptsContentForThisPage = "";
+        textContent.items.forEach(textContentItem => {
+          receiptsContentForThisPage += textContentItem.str + "\n";
+        });
+        receiptsData +=
+          receiptsContentForThisPage.substring(
+            receiptsContentForThisPage.lastIndexOf("Empfänger"),
+            receiptsContentForThisPage.lastIndexOf("Bei Einlieferung")
+          ) + "\n\n";
+
         const canvas = document.getElementById(`originals-${index}`);
-        const data = canvas.toDataURL("imaage/jpg", 1);
+        const data = canvas.toDataURL("image/jpg", 1);
         const width = canvas.width / 8.5;
         const height = canvas.height / 8.5;
         if (index % 2 === 0) {
-          receiptsPdf.addPage();
           labelPdf.addPage();
-          receiptsPdf.addImage(data, "jpg", 3, -4, width, height);
           if (this.size === "a4") {
             labelPdf.addImage(data, "jpg", 3, -4, width, height);
           } else {
             labelPdf.addImage(data, "jpg", 3, 14, width, height);
           }
         } else {
-          receiptsPdf.addImage(data, "jpg", 3, -150, width, height);
           if (this.size === "a4") {
             labelPdf.addImage(data, "jpg", 3, 150, width, height);
           } else {
@@ -161,7 +169,17 @@ export default {
         index += 1;
       }
       labelPdf.save(`${today}-labels.pdf`);
-      receiptsPdf.save(`${today}-receipts.pdf`);
+      const file = new Blob([receiptsData], { type: "txt" });
+      const a = document.createElement("a"),
+        url = URL.createObjectURL(file);
+      a.href = url;
+      a.download = `${today}-receipts.txt`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function() {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 0);
     }
   },
   props: {}
