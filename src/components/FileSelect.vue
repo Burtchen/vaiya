@@ -14,7 +14,7 @@
       for="a5"
       >A5</label
     >
-    <input type="radio" id="a4" name="size" value="a5" v-model="size" /><label
+    <input type="radio" id="a4" name="size" value="a4" v-model="size" /><label
       for="a4"
       >A4</label
     >
@@ -143,10 +143,9 @@ export default {
         if (index % 2 === 0) {
           receiptsPdf.addPage();
           labelPdf.addPage();
-          labelPdf.addImage(data, "jpg", 3, -4, width, height);
+          receiptsPdf.addImage(data, "jpg", 3, -4, width, height);
           if (this.size === "a4") {
-            receiptsPdf.addImage(data, "jpg", 3, -4, width, height);
-            // receiptsPdf.rect(3, -150, width, height, "F");
+            labelPdf.addImage(data, "jpg", 3, -4, width, height);
           } else {
             labelPdf.addImage(data, "jpg", 3, 14, width, height);
           }
