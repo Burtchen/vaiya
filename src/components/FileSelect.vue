@@ -185,8 +185,13 @@ export default {
         this.progress = ((index + 1) / this.files.length) * 100;
         const textContent = await page.getTextContent();
         let receiptsContentForThisPage = "";
+        let previousItem;
         textContent.items.forEach(textContentItem => {
-          receiptsContentForThisPage += textContentItem.str + "\n";
+          receiptsContentForThisPage +=
+            previousItem === "Sendungsnr.:"
+              ? textContentItem.str.replace(/(\.|\s)/g, "") + "\n"
+              : textContentItem.str + "\n";
+          previousItem = textContentItem.str;
         });
         receiptsData +=
           receiptsContentForThisPage.substring(
