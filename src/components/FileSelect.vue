@@ -222,7 +222,7 @@ export default {
       a.href = url;
       a.download = `${today}-receipts.txt`;
       document.body.appendChild(a);
-      // a.click();
+      a.click();
       setTimeout(function() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
