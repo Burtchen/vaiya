@@ -14,7 +14,7 @@
     "pdfjs-dist": "^2.6.347",
     "primeflex": "^2.0.0",
     "primeicons": "^4.1.0",
-    "primevue": "^3.3.5",
+    "primevue": "^3.9.1",
     "vue": "^3.0.0"
   },
   "devDependencies": {

@@ -34,11 +34,6 @@
     </OrderList>
   </div>
   <form v-if="files?.length > 0" @submit.prevent="onSubmit">
-    <SelectButton
-      v-model="size"
-      :options="sizes"
-      class="p-my-2 size-button-group"
-    />
     <Button
       v-show="canvased"
       label="Vaiya!"
@@ -56,17 +51,22 @@
   <canvas
     hidden
     v-for="(file, index) in files"
-    :id="['originals-' + index]"
+    :id="['originals-content-' + index]"
     :key="file.name"
-  ></canvas> </template
->∏
+  ></canvas
+  ><canvas
+    hidden
+    v-for="(file, index) in files"
+    :id="['originals-customs-' + index]"
+    :key="file.name"
+  ></canvas>
+</template>
 
 <script>
 import jsPDF from "jspdf";
 
 import FileUpload from "primevue/fileupload";
 import Button from "primevue/button";
-import SelectButton from "primevue/selectbutton";
 import OrderList from "primevue/orderlist";
 import ProgressBar from "primevue/progressbar";
 
@@ -77,8 +77,6 @@ export default {
       value1: "Off",
       options: ["Off", "On"],
       files: [],
-      size: "a5",
-      sizes: ["a4", "a5"],
       canvased: false,
       progress: null
     };
@@ -152,38 +150,54 @@ export default {
       let index = 0;
 
       for (const file of this.files) {
-        const page = await file.pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 3 });
-        const canvas = document.getElementById(`originals-${index}`);
-        const renderContext = {
-          canvasContext: canvas.getContext("2d"),
-          viewport
+        const numberOfPages = file.pdf._pdfInfo.numPages;
+        const contentPage = await file.pdf.getPage(numberOfPages === 1 ? 1 : 2);
+        const contentViewport = contentPage.getViewport({ scale: 3 });
+        const contentCanvas = document.getElementById(
+          `originals-content-${index}`
+        );
+        const contentRenderContext = {
+          canvasContext: contentCanvas.getContext("2d"),
+          viewport: contentViewport
         };
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
+        contentCanvas.height = contentViewport.height;
+        contentCanvas.width = contentViewport.width;
+        await contentPage.render(contentRenderContext);
+
+        if (numberOfPages === 2) {
+          const customsPage = await file.pdf.getPage(1);
+          const customsViewport = customsPage.getViewport({ scale: 3 });
+          const customsCanvas = document.getElementById(
+            `originals-customs-${index}`
+          );
+          const customsRenderContext = {
+            canvasContext: customsCanvas.getContext("2d"),
+            viewport: customsViewport
+          };
+          customsCanvas.height = customsViewport.height;
+          customsCanvas.width = customsViewport.width;
+          await customsPage.render(customsRenderContext);
+        }
         index += 1;
 
-        await page.render(renderContext);
         this.canvased = true;
       }
     },
     async generatePdf() {
       let index = 0;
       this.progress = 0;
-      const labelPdf =
-        this.size === "a4"
-          ? new jsPDF()
-          : new jsPDF({
-              orientation: "l",
-              format: "a5"
-            });
+      const labelPdf = new jsPDF({
+        orientation: "l",
+        format: "a5"
+      });
       const today = new Date().toLocaleDateString();
       labelPdf.deletePage(1);
       let receiptsData = "";
       for (const file of this.files) {
-        const page = await file.pdf.getPage(1);
+        const numberOfPages = file.pdf._pdfInfo.numPages;
+        const contentPage = await file.pdf.getPage(numberOfPages === 1 ? 1 : 2);
         this.progress = ((index + 1) / this.files.length) * 100;
-        const textContent = await page.getTextContent();
+        const textContent = await contentPage.getTextContent();
         let receiptsContentForThisPage = "";
         let previousItem;
         textContent.items.forEach(textContentItem => {
@@ -199,24 +213,31 @@ export default {
             receiptsContentForThisPage.lastIndexOf("Bei Einlieferung")
           ) + "\n\n";
 
-        const canvas = document.getElementById(`originals-${index}`);
-        const data = canvas.toDataURL("image/jpg", 1);
-        const width = canvas.width / 8.5;
-        const height = canvas.height / 8.5;
-        if (index % 2 === 0) {
+        const contentCanvas = document.getElementById(
+          `originals-content-${index}`
+        );
+        labelPdf.addPage();
+        labelPdf.addImage(
+          contentCanvas.toDataURL("image/jpg", 1),
+          "jpg",
+          3,
+          14,
+          contentCanvas.width / 8.5,
+          contentCanvas.height / 8.5
+        );
+        if (numberOfPages === 2) {
+          const customsCanvas = document.getElementById(
+            `originals-customs-${index}`
+          );
           labelPdf.addPage();
-          if (this.size === "a4") {
-            labelPdf.addImage(data, "jpg", 3, -4, width, height);
-          } else {
-            labelPdf.addImage(data, "jpg", 3, 14, width, height);
-          }
-        } else {
-          if (this.size === "a4") {
-            labelPdf.addImage(data, "jpg", 3, 150, width, height);
-          } else {
-            labelPdf.addPage();
-            labelPdf.addImage(data, "jpg", 3, 14, width, height);
-          }
+          labelPdf.addImage(
+            customsCanvas.toDataURL("image/jpg", 1),
+            "jpg",
+            3,
+            14,
+            customsCanvas.width / 8.5,
+            customsCanvas.height / 8.5
+          );
         }
         index += 1;
       }
@@ -227,7 +248,7 @@ export default {
       a.href = url;
       a.download = `${today}-receipts.txt`;
       document.body.appendChild(a);
-      a.click();
+      // a.click();
       setTimeout(function() {
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
@@ -238,7 +259,6 @@ export default {
   components: {
     Button,
     FileUpload,
-    SelectButton,
     OrderList,
     ProgressBar
   }
@@ -259,10 +279,5 @@ a {
 
 .p-orderlist .p-orderlist-controls {
   display: none !important;
-}
-
-.size-button-group {
-  transform: scale(0.7);
-  text-transform: uppercase;
 }
 </style>
