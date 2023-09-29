@@ -43,4 +43,9 @@ h1 {
   padding-top: 40px;
   max-width: 600px;
 }
+
+.p-fileupload-buttonbar button.p-button {
+  display: none;
+}
+
 </style>

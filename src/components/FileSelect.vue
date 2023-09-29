@@ -3,17 +3,15 @@
     <p>Start the label optimization with an upload</p>
     <FileUpload
       name="upload[]"
-      mode="basic"
+      @select="getFiles"
+      @upload="getFiles"
       url="./upload"
       accept=".pdf,.zip"
+      :auto="false"
       :multiple="true"
       :previewWidth="0"
-      :customUpload="true"
-      chooseLabel="Select Files"
-      @uploader="getFiles"
-      :auto="true"
       :showCancelButton="false"
-      class="p-my-4"
+      chooseLabel="Select Files"
       ><template #empty>
         <p>You can also drag and drop files here.</p>
       </template></FileUpload
@@ -138,6 +136,7 @@ export default {
       return returnObject;
     },
     async getFiles(event) {
+      console.log(event)
       let files = [];
       for (const file of event.files) {
         if (file.type === "application/pdf") {
