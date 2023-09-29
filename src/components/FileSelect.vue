@@ -23,7 +23,7 @@
       v-model="files"
       listStyle="height:auto"
       dataKey="name"
-      class="p-my-2"
+      class="p-mt-6 p-mb-2"
     >
       <template #header>
         List of Files
@@ -36,9 +36,15 @@
   <form v-if="files?.length > 0" @submit.prevent="onSubmit">
     <Button
       v-show="canvased"
-      label="Vaiya!"
+      label="UPS"
+      class="p-button-lg p-mr-4"
+      @click="() => generatePdf(-132)"
+    />
+    <Button
+      v-show="canvased"
+      label="DHL"
       class="p-button-lg"
-      @click="generatePdf"
+      @click="() => generatePdf(14)"
     />
   </form>
   <ProgressBar
@@ -183,7 +189,7 @@ export default {
         this.canvased = true;
       }
     },
-    async generatePdf() {
+    async generatePdf(offset) {
       let index = 0;
       this.progress = 0;
       const labelPdf = new jsPDF({
@@ -221,7 +227,7 @@ export default {
           contentCanvas.toDataURL("image/jpg", 1),
           "jpg",
           3,
-          14,
+            offset,
           contentCanvas.width / 8.5,
           contentCanvas.height / 8.5
         );
@@ -234,7 +240,7 @@ export default {
             customsCanvas.toDataURL("image/jpg", 1),
             "jpg",
             3,
-            14,
+              offset,
             customsCanvas.width / 8.5,
             customsCanvas.height / 8.5
           );
