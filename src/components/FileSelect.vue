@@ -36,7 +36,7 @@
       v-show="canvased"
       label="UPS"
       class="p-button-lg p-mr-4"
-      @click="() => generatePdf(-132)"
+      @click="() => generatePdf(-100)"
     />
     <Button
       v-show="canvased"
