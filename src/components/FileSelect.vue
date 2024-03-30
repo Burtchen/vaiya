@@ -136,7 +136,6 @@ export default {
       return returnObject;
     },
     async getFiles(event) {
-      console.log(event)
       let files = [];
       for (const file of event.files) {
         if (file.type === "application/pdf") {
@@ -276,6 +275,10 @@ h3 {
 }
 a {
   color: #42b983;
+}
+
+.p-fileupload-row div:has(.p-button) {
+  display: none;
 }
 
 .p-orderlist {
