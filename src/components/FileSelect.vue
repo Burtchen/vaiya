@@ -35,14 +35,22 @@
     <Button
       v-show="canvased"
       label="UPS"
-      class="p-button-lg p-mr-4"
+      class="p-button-lg"
+      style="margin-right: 1rem"
       @click="() => generatePdf(-100)"
     />
     <Button
       v-show="canvased"
       label="DHL"
       class="p-button-lg"
+      style="margin-right: 1rem"
       @click="() => generatePdf(14)"
+    />
+    <Button
+      v-show="canvased"
+      label="Hermes"
+      class="p-button-lg"
+      @click="() => generatePdf(-140)"
     />
   </form>
   <ProgressBar
