@@ -50,7 +50,7 @@
       v-show="canvased"
       label="Hermes"
       class="p-button-lg"
-      @click="() => generatePdf(-140)"
+      @click="() => generatePdf(10)"
     />
   </form>
   <ProgressBar
