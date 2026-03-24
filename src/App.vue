@@ -1,5 +1,5 @@
 <template>
-  <Card class="p-mx-auto app-container">
+  <Card class="app-container">
     <template #header> <h1>Vaiya</h1> </template>
     <template #content>
       <FileSelect />
@@ -42,6 +42,8 @@ h1 {
   margin-top: 60px;
   padding-top: 40px;
   max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .p-fileupload-buttonbar button.p-button {
